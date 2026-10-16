@@ -85,8 +85,18 @@ print("\n⚡ [4/4] Disparando Runner de 32 GB VRAM nos Tensores...")
 import kaggle_32gb_runner
 kaggle_32gb_runner.execute_dual_t4_pipeline()
 
+# 4. Sincronização Automática com o Google Drive
+print("\n💾 [5/5] Sincronizando Checkpoints e Arquivos com o Google Drive...")
+try:
+    import google_drive_sync
+    # Roda em thread para não bloquear caso necessite autenticação inicial
+    threading.Thread(target=google_drive_sync.auto_backup, daemon=True).start()
+except Exception as e:
+    print(f"Aviso de sincronização: {e}")
+
 print("\n" + "=" * 65)
 print("✅ AMBIENTE 100% CONFIGURADO, PRONTO E FUNCIONAL!")
+print("📁 Backup Google Drive: Ativado na pasta 'Stack_Agentes_32GB'")
 print("🔥 Keep-Alive Ativo: O notebook permanecerá acordado e operando.")
 print("=" * 65)
 
