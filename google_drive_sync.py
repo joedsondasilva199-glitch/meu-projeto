@@ -75,12 +75,17 @@ class GoogleDriveManager:
                     gauth.LoadCredentialsFile(cred_file)
                 
                 if gauth.credentials is None:
-                    print("\n" + "="*65)
-                    print("🔗 AUTORIZAÇÃO SEGURA DO GOOGLE DRIVE:")
-                    print("Abra o link abaixo, faça login na sua conta Google e cole o código de verificação:")
-                    print("="*65 + "\n")
-                    gauth.CommandLineAuth()
-                    gauth.SaveCredentialsFile(cred_file)
+                    # Verifica se o ambiente permite input interativo seguro
+                    if sys.stdin and sys.stdin.isatty():
+                        print("\n" + "="*65)
+                        print("🔗 AUTORIZAÇÃO DO GOOGLE DRIVE:")
+                        print("Abra o link abaixo, autorize e cole o código:")
+                        print("="*65 + "\n")
+                        gauth.CommandLineAuth()
+                        gauth.SaveCredentialsFile(cred_file)
+                    else:
+                        logger.warning("Ambiente não interativo. O backup foi salvo na pasta local e aguarda credencial.")
+                        return False
                 elif gauth.access_token_expired:
                     gauth.Refresh()
                 else:
