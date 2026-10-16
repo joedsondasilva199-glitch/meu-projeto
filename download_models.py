@@ -82,6 +82,13 @@ MODELS_CATALOG = [
         "repo_id": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
         "category": "✍️ Roteirista & Raciocínio",
         "allow_patterns": ["*.json", "*.safetensors", "*.model", "*.txt"]
+    },
+    {
+        "id": "svd",
+        "name": "Stable Video Diffusion XT (SVD-XT)",
+        "repo_id": "stabilityai/stable-video-diffusion-img2vid-xt-1-1",
+        "category": "🎥 Gerador de Vídeo Realista (25 Quadros)",
+        "allow_patterns": ["*.json", "*.safetensors", "*.txt", "*fp16*"]
     }
 ]
 

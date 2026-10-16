@@ -29,6 +29,7 @@ import test_1_deepseek
 import test_2_xtts_emocao
 import test_3_sdxl_turbo
 import test_4_whisper
+import test_5_svd_video
 
 OUTPUT_DIR = os.path.abspath("outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -73,23 +74,44 @@ def main():
     except Exception as e:
         results["Whisper Large v3 (Legendas)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
 
-    # ETAPA FINAL: Compilação de Vídeo Integrando os 4 Modelos
+    # TESTE 5: SVD-XT (Vídeo Realista com Difusão Temporal)
+    try:
+        t0 = time.time()
+        file_t5 = test_5_svd_video.run_test()
+        results["SVD-XT (Vídeo Realista)"] = {"status": "APROVADO", "tempo": round(time.time() - t0, 1), "arquivo": file_t5}
+    except Exception as e:
+        results["SVD-XT (Vídeo Realista)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
+
+    # ETAPA FINAL: Compilação de Vídeo Integrando os Modelos
     final_video = os.path.join(OUTPUT_DIR, "video_final_integrado.mp4")
+    video_svd = results.get("SVD-XT (Vídeo Realista)", {}).get("arquivo")
     img_sdxl = results.get("SDXL Turbo (1024x1024)", {}).get("arquivo")
     audio_xtts = results.get("XTTS-v2 (Voz com Emoção)", {}).get("arquivo")
     srt_whisper = results.get("Whisper Large v3 (Legendas)", {}).get("arquivo")
 
-    if img_sdxl and audio_xtts and os.path.exists(img_sdxl) and os.path.exists(audio_xtts):
+    if audio_xtts and os.path.exists(audio_xtts):
         print("\n🎬 COMPILANDO VÍDEO INTEGRADO COM AS SAÍDAS DOS MODELOS REAIS...")
-        cmd_video = [
-            "ffmpeg", "-y",
-            "-loop", "1", "-i", img_sdxl,
-            "-i", audio_xtts,
-            "-vf", "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,zoompan=z='min(zoom+0.0015,1.15)':d=125:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1920x1080:fps=25",
-            "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
-            "-shortest", "-pix_fmt", "yuv420p",
-            final_video
-        ]
+        if video_svd and os.path.exists(video_svd):
+            print(f" -> Usando VÍDEO NEURAL REAL gerado pelo SVD-XT: {video_svd}")
+            cmd_video = [
+                "ffmpeg", "-y",
+                "-stream_loop", "-1", "-i", video_svd,
+                "-i", audio_xtts,
+                "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
+                "-shortest", "-pix_fmt", "yuv420p",
+                final_video
+            ]
+        elif img_sdxl and os.path.exists(img_sdxl):
+            print(f" -> Usando imagem SDXL com movimento de câmera: {img_sdxl}")
+            cmd_video = [
+                "ffmpeg", "-y",
+                "-loop", "1", "-i", img_sdxl,
+                "-i", audio_xtts,
+                "-vf", "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,zoompan=z='min(zoom+0.0015,1.15)':d=125:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1920x1080:fps=25",
+                "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
+                "-shortest", "-pix_fmt", "yuv420p",
+                final_video
+            ]
         subprocess.run(cmd_video, check=False)
         print(f"✅ Vídeo gerado com sucesso: {final_video}")
 

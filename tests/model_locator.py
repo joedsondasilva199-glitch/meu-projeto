@@ -31,6 +31,11 @@ MODEL_CONFIGS = {
         "repo_id": "openai/whisper-large-v3-turbo",
         "folder_name": "whisper",
         "description": "Whisper Large v3 Turbo - Transcrição & Legendas"
+    },
+    "svd": {
+        "repo_id": "stabilityai/stable-video-diffusion-img2vid-xt-1-1",
+        "folder_name": "svd",
+        "description": "Stable Video Diffusion XT - Geração de Vídeo Realista 25 Quadros"
     }
 }
 
