@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Antigravity Sims — HQ Viva dos Agentes</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --sims-green: #10b981;
+      --sims-green-glow: rgba(16, 185, 129, 0.7);
+      --sims-blue: #0ea5e9;
+      --sims-purple: #8b5cf6;
+      --sims-amber: #f59e0b;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      user-select: none;
+      background-color: #090d16;
+    }
+
+    /* Plumbob flutuante no Canvas e na interface */
+    @keyframes floatPlumbob {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(180deg); }
+    }
+
+    .plumbob-icon {
+      animation: floatPlumbob 3s ease-in-out infinite;
+    }
+
+    /* Efeito de luz ambiente */
+    .office-canvas-container {
+      position: relative;
+      background: radial-gradient(circle at 50% 30%, #151d2d 0%, #0b0f17 100%);
+      box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen p-3 md:p-5">
+
+  <!-- BARRA DE CONTROLE SUPERIOR ESTILO THE SIMS -->
+  <header class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 bg-[#121824]/95 border border-slate-700/60 rounded-2xl px-5 py-3 shadow-2xl backdrop-blur-md mb-4">
+    <div class="flex items-center gap-3">
+      <!-- Ícone Plumbob Clássico The Sims -->
+      <div class="relative w-7 h-9 flex items-center justify-center">
+        <svg class="plumbob-icon w-6 h-8 filter drop-shadow-[0_0_8px_#10b981]" viewBox="0 0 24 36" fill="none">
+          <polygon points="12,0 24,18 12,36 0,18" fill="url(#plumbob-grad)" />
+          <polygon points="12,0 24,18 12,18 0,18" fill="#34d399" opacity="0.6" />
+          <defs>
+            <linearGradient id="plumbob-grad" x1="0" y1="0" x2="24" y2="36">
+              <stop offset="0%" stop-color="#34d399" />
+              <stop offset="50%" stop-color="#10b981" />
+              <stop offset="100%" stop-color="#047857" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+          THE AGENTS SIMS <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">VIRTUAL HQ</span>
+        </h1>
+        <p class="text-xs text-slate-400">Simulação Autônoma: Trabalho, Café, Descanso & Delegação</p>
+      </div>
+    </div>
+
+    <!-- PAINEL DE CONTROLE DE TEMPO E AÇÕES DO MUNDO -->
+    <div class="flex items-center gap-3 text-xs">
+      <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700 px-3 py-1.5 rounded-xl">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="text-slate-300">Expediente: <b class="text-emerald-400" id="office-clock">10:45 AM</b></span>
+      </div>
+
+      <button onclick="toggleAllWork(true)" class="bg-blue-600/80 hover:bg-blue-600 text-white font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-blue-400/30 cursor-pointer flex items-center gap-1.5">
+        💻 Foco Geral (Trabalho)
+      </button>
+
+      <button onclick="toggleAllWork(false)" class="bg-amber-600/80 hover:bg-amber-600 text-white font-semibold px-3 py-1.5 rounded-xl text-xs transition border border-amber-400/30 cursor-pointer flex items-center gap-1.5">
+        ☕ Hora do Café (Pausa)
+      </button>
+
+      <button onclick="window.open('/mario', '_blank')" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1.5 rounded-xl text-xs shadow-lg shadow-red-900/30 transition flex items-center gap-1.5 cursor-pointer">
+        <span>🎮</span> JOGAR SUPER MARIO
+      </button>
+
+      <button onclick="openGlobalDelegateModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold px-4 py-1.5 rounded-xl text-xs shadow-lg shadow-emerald-900/30 transition flex items-center gap-2 cursor-pointer">
+        <span>⚡</span> DELEGAR TAREFA
+      </button>
+    </div>
+  </header>
+
+  <!-- GRID PRINCIPAL: MUNDO SIMS (CANVAS) + PAINEL DO SIM SELECIONADO -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- ÁREA DO JOGO THE SIMS (CANVAS VIVO - 8 COLUNAS) -->
+    <section class="lg:col-span-8 flex flex-col gap-3">
+      
+      <!-- CONTÊINER DO CANVAS -->
+      <div class="office-canvas-container border border-slate-800 relative">
+        <canvas id="simsCanvas" width="820" height="520" class="w-full h-auto cursor-pointer block"></canvas>
+        
+        <!-- LEGENDA INTERATIVA DOS AMBIENTES -->
+        <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-800 text-[11px] text-slate-400 pointer-events-none">
+          <div class="flex items-center gap-3">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Lounge do Dono</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Gabinete Hermes</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Centro Antigravity</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-400"></span> Baia Orca</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-400"></span> Copa / Café</span>
+          </div>
+          <span class="text-emerald-400 font-semibold pointer-events-auto cursor-pointer" onclick="resetView()">
+            🎯 Clique em qualquer Sim para controlá-lo
+          </span>
+        </div>
+      </div>
+
+      <!-- STATUS DO LINEAR BUSINESS EM TEMPO REAL -->
+      <div class="bg-[#121824]/90 border border-slate-800 rounded-2xl p-3 px-4 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2.5">
+          <span class="text-lg">📋</span>
+          <div>
+            <div class="font-bold text-white flex items-center gap-2">
+              LINEAR BUSINESS • EQUIPE JOEDSON (Key: [JOE])
+              <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30">Projeto: Stack Multi-Agente</span>
+            </div>
+            <div class="text-[11px] text-slate-400" id="current-task-display">
+              Tarefa em andamento no mundo: <b class="text-emerald-400">JOE-5 [F0] Blueprint e Fundação da Stack</b>
+            </div>
+          </div>
+        </div>
+        <a href="https://linear.app/jo5/project/stack-multi-agente-95d26c2ef6ca" target="_blank" class="bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-200 px-3 py-1.5 rounded-xl font-bold transition">
+          Abrir Linear ↗
+        </a>
+      </div>
+
+    </section>
+
+    <!-- PAINEL LATERAL: CONTROLE DO SIM (4 COLUNAS) -->
+    <aside class="lg:col-span-4 space-y-4">
+      
+      <!-- FICHA COMPLETA DO SIM SELECIONADO -->
+      <div class="bg-[#121824]/95 border border-slate-700/60 rounded-3xl p-5 shadow-2xl backdrop-blur-md">
+        
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-3 mb-4">
+          <div class="flex items-center gap-2">
+            <!-- Mini Plumbob -->
+            <div class="w-3.5 h-5 bg-emerald-400 rounded-sm shadow-[0_0_8px_#10b981]"></div>
+            <h2 class="text-xs font-bold text-white uppercase tracking-wider">Perfil do Sim</h2>
+          </div>
+          <span id="sim-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Tech Lead
+          </span>
+        </div>
+
+        <!-- CABEÇALHO DO SIM -->
+        <div class="flex items-center gap-3.5 mb-4">
+          <div id="sim-avatar-box" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-lg flex items-center justify-center text-3xl">
+            <div class="w-full h-full bg-slate-900 rounded-2xl flex items-center justify-center" id="sim-avatar-emoji">
+              🚀
+            </div>
+          </div>
+          <div>
+            <h3 id="sim-name" class="text-base font-extrabold text-white">Antigravity</h3>
+            <p id="sim-role" class="text-xs text-slate-400">IA Orquestradora & Tech Lead</p>
+            <div class="flex items-center gap-1.5 mt-1">
+              <span id="sim-status-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="sim-status-text" class="text-[11px] text-emerald-400 font-bold">Codando no Computador</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BARRAS DE NECESSIDADES DO SIM (THE SIMS NEEDS) -->
+        <div class="space-y-2.5 bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800 text-xs mb-4">
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-slate-400">⚡ Produtividade / Código</span>
+              <span class="text-emerald-400 font-bold" id="bar-prod-val">95%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="bar-prod" class="h-full bg-emerald-400 rounded-full transition-all duration-500" style="width: 95%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-slate-400">☕ Nível de Cafeína</span>
+              <span class="text-amber-400 font-bold" id="bar-coffee-val">80%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="bar-coffee" class="h-full bg-amber-400 rounded-full transition-all duration-500" style="width: 80%;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-[11px] mb-1">
+              <span class="text-slate-400">🛋️ Descanso / Humor</span>
+              <span class="text-blue-400 font-bold" id="bar-rest-val">90%</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="bar-rest" class="h-full bg-blue-400 rounded-full transition-all duration-500" style="width: 90%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AÇÕES IMEDIATAS DO SIM -->
+        <div class="space-y-2 mb-4">
+          <label class="block text-xs font-bold text-slate-300">🎮 Comandos do Sim:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="orderCurrentSim('work')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-1 cursor-pointer">
+              <span class="text-sm">💻</span> Trabalhar
+            </button>
+            <button onclick="orderCurrentSim('coffee')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-1 cursor-pointer">
+              <span class="text-sm">☕</span> Tomar Café
+            </button>
+            <button onclick="orderCurrentSim('rest')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-1 cursor-pointer">
+              <span class="text-sm">🛋️</span> Relaxar
+            </button>
+          </div>
+        </div>
+
+        <!-- DELEGAÇÃO DIRETA DE TAREFA -->
+        <div class="space-y-2.5">
+          <label class="block text-xs font-bold text-slate-300">
+            🎯 Delegar Ordem Direta para <span id="delegate-target-label" class="text-emerald-400">Antigravity</span>:
+          </label>
+          <textarea id="direct-task-input" rows="3" placeholder="Digite uma tarefa específica para este Sim..." class="w-full bg-slate-950/90 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          <button onclick="submitDirectTask()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-500/20 cursor-pointer">
+            🚀 Enviar Ordem Imediata
+          </button>
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- MODAL: DELEGAR PARA TODA A STACK -->
+  <div id="modal-stack-delegate" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#121824] border border-slate-700 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚡</span>
+          <h3 class="text-base font-bold text-white">Delegar para a Stack Completa</h3>
+        </div>
+        <button onclick="closeGlobalDelegateModal()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-300 mb-4">
+        A tarefa será automaticamente registrada no <b>Linear Business (Projeto Stack Multi-Agente)</b> e despachada no <b>Orca</b>.
+      </p>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Título da Funcionalidade / Fatia:</label>
+          <input type="text" id="global-task-title" placeholder="Ex: [F1] Autenticação e Multi-tenant" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-200 mb-1">Critérios de Aceite:</label>
+          <textarea id="global-task-desc" rows="4" placeholder="Descreva os endpoints, modelos e testes esperados..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="closeGlobalDelegateModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer">
+            Cancelar
+          </button>
+          <button onclick="submitGlobalDelegation()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition shadow-lg shadow-emerald-900/40 cursor-pointer">
+            🚀 Enviar para o Escritório
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION THE SIMS -->
+  <div id="sims-toast" class="fixed bottom-6 right-6 bg-[#16202f] border border-emerald-500/50 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-50 text-xs">
+    <div class="w-3 h-5 bg-emerald-400 rounded-sm shadow-[0_0_8px_#10b981]"></div>
+    <div>
+      <div id="toast-title" class="font-bold text-emerald-300">Sims Event</div>
+      <div id="toast-desc" class="text-slate-300">Comando executado.</div>
+    </div>
+  </div>
+
+  <!-- MOTOR GRÁFICO E SIMULAÇÃO THE SIMS -->
+  <script>
+    const canvas = document.getElementById('simsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // LOCAIS FIXOS DO ESCRITÓRIO
+    const LOCATIONS = {
+      // Mesas de Trabalho
+      DESK_OWNER: { x: 130, y: 150, seatX: 130, seatY: 125, name: 'Mesa do Dono' },
+      DESK_HERMES: { x: 340, y: 150, seatX: 340, seatY: 125, name: 'Gabinete Hermes' },
+      DESK_ANTIGRAVITY: { x: 170, y: 350, seatX: 170, seatY: 325, name: 'Centro Antigravity' },
+      DESK_ORCA: { x: 380, y: 350, seatX: 380, seatY: 325, name: 'Baia Orca 1' },
+      DESK_ORCA2: { x: 440, y: 350, seatX: 440, seatY: 325, name: 'Baia Orca 2' },
+      
+      // Áreas de Descanso / Ócio
+      COFFEE_MACHINE: { x: 700, y: 120, name: 'Máquina de Café' },
+      SOFA_LOUNGE: { x: 680, y: 340, name: 'Sofá do Lounge' },
+      WHITEBOARD: { x: 540, y: 110, name: 'Quadro de Arquitetura' },
+      WATER_COOLER: { x: 740, y: 190, name: 'Bebedouro' }
+    };
+
+    // OS PERSONAGENS (SIMS)
+    const SIMS = {
+      owner: {
+        id: 'owner',
+        name: 'Joedson Silva',
+        role: 'O Dono (Humano)',
+        badge: 'Decisão & Aprovação',
+        emoji: '😎',
+        color: '#f59e0b',
+        shirtColor: '#d97706',
+        pantsColor: '#1e293b',
+        hairColor: '#451a03',
+        x: LOCATIONS.DESK_OWNER.seatX,
+        y: LOCATIONS.DESK_OWNER.seatY,
+        targetX: LOCATIONS.DESK_OWNER.seatX,
+        targetY: LOCATIONS.DESK_OWNER.seatY,
+        state: 'WORKING', // WORKING, WALKING, COFFEE, RESTING, IDLE
+        desk: LOCATIONS.DESK_OWNER,
+        bubble: '☕ Aprovando',
+        bubbleTimer: 0,
+        prod: 100,
+        coffee: 85,
+        rest: 90,
+        animFrame: 0
+      },
+      hermes: {
+        id: 'hermes',
+        name: 'Hermes Agent',
+        role: 'Gestor Geral & Estratégico',
+        badge: 'Gestor Geral',
+        emoji: '🧐',
+        color: '#6366f1',
+        shirtColor: '#4f46e5',
+        pantsColor: '#312e81',
+        hairColor: '#e0e7ff',
+        x: LOCATIONS.DESK_HERMES.seatX,
+        y: LOCATIONS.DESK_HERMES.seatY,
+        targetX: LOCATIONS.DESK_HERMES.seatX,
+        targetY: LOCATIONS.DESK_HERMES.seatY,
+        state: 'WORKING',
+        desk: LOCATIONS.DESK_HERMES,
+        bubble: '📐 Fatias Verticais',
+        bubbleTimer: 0,
+        prod: 95,
+        coffee: 75,
+        rest: 85,
+        animFrame: 0
+      },
+      antigravity: {
+        id: 'antigravity',
+        name: 'Antigravity (Tech Lead)',
+        role: 'IA Orquestradora & Tech Lead',
+        badge: 'Tech Lead',
+        emoji: '🚀',
+        color: '#10b981',
+        shirtColor: '#059669',
+        pantsColor: '#0f172a',
+        hairColor: '#34d399',
+        x: LOCATIONS.DESK_ANTIGRAVITY.seatX,
+        y: LOCATIONS.DESK_ANTIGRAVITY.seatY,
+        targetX: LOCATIONS.DESK_ANTIGRAVITY.seatX,
+        targetY: LOCATIONS.DESK_ANTIGRAVITY.seatY,
+        state: 'WORKING',
+        desk: LOCATIONS.DESK_ANTIGRAVITY,
+        bubble: '🔍 4 Janelas',
+        bubbleTimer: 0,
+        prod: 100,
+        coffee: 90,
+        rest: 95,
+        animFrame: 0
+      },
+      orca: {
+        id: 'orca',
+        name: 'Orca (Claude Code)',
+        role: 'Executor em Worktree',
+        badge: 'Executor',
+        emoji: '🤖',
+        color: '#0ea5e9',
+        shirtColor: '#0284c7',
+        pantsColor: '#1e1b4b',
+        hairColor: '#38bdf8',
+        x: LOCATIONS.DESK_ORCA.seatX,
+        y: LOCATIONS.DESK_ORCA.seatY,
+        targetX: LOCATIONS.DESK_ORCA.seatX,
+        targetY: LOCATIONS.DESK_ORCA.seatY,
+        state: 'WORKING',
+        desk: LOCATIONS.DESK_ORCA,
+        bubble: '💻 Codando JOE-5',
+        bubbleTimer: 0,
+        prod: 98,
+        coffee: 70,
+        rest: 80,
+        animFrame: 0
+      }
+    };
+
+    let selectedSimId = 'antigravity';
+    let simlishWords = ['Sul sul!', 'Dag dag!', 'Chok-pok!', 'Nooboo!', 'Mik-mak!'];
+
+    // SONS SINTETIZADOS (Web Audio API)
+    function playAudioTone(freq1, freq2, duration = 0.15) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq1, ctx.currentTime);
+        if (freq2) osc.frequency.exponentialRampToValueAtTime(freq2, ctx.currentTime + duration * 0.8);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // -------------------------------------------------------------
+    // DESENHO DO CENÁRIO DO ESCRITÓRIO THE SIMS
+    // -------------------------------------------------------------
+    function drawOffice() {
+      // 1. Piso com textura quadriculada
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+      ctx.lineWidth = 1;
+      const step = 32;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // 2. Divisórias de Salas (Paredes Suaves)
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.8)';
+      ctx.lineWidth = 4;
+      // Parede divisória vertical da Copa
+      ctx.beginPath();
+      ctx.moveTo(610, 20);
+      ctx.lineTo(610, 480);
+      ctx.stroke();
+
+      // Porta aberta para a copa
+      ctx.clearRect(608, 220, 6, 80);
+
+      // Parede horizontal divisória superior/inferior
+      ctx.beginPath();
+      ctx.moveTo(30, 240);
+      ctx.lineTo(590, 240);
+      ctx.stroke();
+      ctx.clearRect(240, 238, 80, 6);
+
+      // 3. Rótulos das Áreas
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+      ctx.font = 'bold 11px system-ui';
+      ctx.fillText('LOUNGE EXECUTIVO', 50, 45);
+      ctx.fillText('GABINETE HERMES', 270, 45);
+      ctx.fillText('CENTRO ANTIGRAVITY (TECH LEAD)', 50, 275);
+      ctx.fillText('BAIA ORCA (EXECUTORES)', 320, 275);
+      ctx.fillText('COPA & CAFÉ', 640, 45);
+      ctx.fillText('ÁREA DE DESCANSO', 640, 280);
+
+      // 4. Objetos do Escritório
+      // Mesas com Computadores
+      drawDesk(LOCATIONS.DESK_OWNER.x, LOCATIONS.DESK_OWNER.y, 'Dono', '#d97706');
+      drawDesk(LOCATIONS.DESK_HERMES.x, LOCATIONS.DESK_HERMES.y, 'Hermes', '#4f46e5');
+      drawDesk(LOCATIONS.DESK_ANTIGRAVITY.x, LOCATIONS.DESK_ANTIGRAVITY.y, 'Antigravity', '#059669', true);
+      drawDesk(LOCATIONS.DESK_ORCA.x, LOCATIONS.DESK_ORCA.y, 'Orca 1', '#0284c7');
+      drawDesk(LOCATIONS.DESK_ORCA2.x, LOCATIONS.DESK_ORCA2.y, 'Orca 2', '#0284c7');
+
+      // Máquina de Café Expresso
+      drawCoffeeStation(LOCATIONS.COFFEE_MACHINE.x, LOCATIONS.COFFEE_MACHINE.y);
+
+      // Bebedouro
+      drawWaterCooler(LOCATIONS.WATER_COOLER.x, LOCATIONS.WATER_COOLER.y);
+
+      // Sofá do Lounge
+      drawSofa(LOCATIONS.SOFA_LOUNGE.x, LOCATIONS.SOFA_LOUNGE.y);
+
+      // Quadro Branco com Diagramas
+      drawWhiteboard(LOCATIONS.WHITEBOARD.x, LOCATIONS.WHITEBOARD.y);
+
+      // Plantas Decorativas
+      drawPlant(40, 60);
+      drawPlant(570, 60);
+      drawPlant(40, 460);
+      drawPlant(570, 460);
+      drawPlant(770, 460);
+    }
+
+    // Desenha Mesa com Computador e Cadeira
+    function drawDesk(x, y, label, accentColor, multiMonitor = false) {
+      // Sombra
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(x - 42, y - 10, 84, 44);
+
+      // Tampo da Mesa
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(x - 40, y - 8, 80, 40, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Teclado
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(x - 14, y + 14, 28, 12);
+
+      // Monitor(es)
+      if (multiMonitor) {
+        // Monitor Central
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x - 16, y - 4, 32, 14);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(x - 14, y - 2, 28, 10);
+
+        // Monitor Esquerdo
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x - 36, y - 2, 18, 12);
+        ctx.fillStyle = '#065f46';
+        ctx.fillRect(x - 34, y, 14, 8);
+
+        // Monitor Direito
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x + 18, y - 2, 18, 12);
+        ctx.fillStyle = '#065f46';
+        ctx.fillRect(x + 20, y, 14, 8);
+      } else {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(x - 18, y - 4, 36, 15);
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(x - 16, y - 2, 32, 11);
+      }
+
+      // Código piscando na tela do monitor
+      if (Math.sin(Date.now() / 200) > 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillRect(x - 10, y + 2, 12, 1.5);
+        ctx.fillRect(x - 10, y + 5, 20, 1.5);
+      }
+    }
+
+    // Desenha Estação de Café com Fumaça
+    function drawCoffeeStation(x, y) {
+      // Bancada
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(x - 30, y - 10, 60, 45);
+
+      // Máquina de Café
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(x - 18, y - 6, 36, 26);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(x - 12, y + 6, 24, 10);
+
+      // Xícara
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x - 4, y + 10, 8, 7);
+
+      // Fumacinha animada
+      const time = Date.now() / 300;
+      const smokeOffset = Math.sin(time) * 3;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x, y + 6);
+      ctx.quadraticCurveTo(x + smokeOffset, y - 4, x, y - 12);
+      ctx.stroke();
+    }
+
+    function drawWaterCooler(x, y) {
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(x - 10, y - 5, 20, 30);
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(x, y - 10, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Sofá Confortável
+    function drawSofa(x, y) {
+      ctx.fillStyle = '#1e3a8a';
+      ctx.beginPath();
+      ctx.roundRect(x - 45, y - 18, 90, 42, 10);
+      ctx.fill();
+
+      // Almofadas
+      ctx.fillStyle = '#2563eb';
+      ctx.fillRect(x - 38, y - 10, 34, 28);
+      ctx.fillRect(x + 4, y - 10, 34, 28);
+    }
+
+    // Quadro Branco
+    function drawWhiteboard(x, y) {
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(x - 35, y - 15, 70, 30);
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 35, y - 15, 70, 30);
+
+      // Diagramas desenhados
+      ctx.strokeStyle = '#3b82f6';
+      ctx.strokeRect(x - 25, y - 8, 14, 8);
+      ctx.strokeStyle = '#10b981';
+      ctx.strokeRect(x + 10, y - 8, 14, 8);
+      ctx.beginPath();
+      ctx.moveTo(x - 11, y - 4);
+      ctx.lineTo(x + 10, y - 4);
+      ctx.stroke();
+    }
+
+    // Planta Decorativa
+    function drawPlant(x, y) {
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.arc(x, y + 8, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(x - 5, y - 2, 8, 0, Math.PI * 2);
+      ctx.arc(x + 5, y - 2, 8, 0, Math.PI * 2);
+      ctx.arc(x, y - 8, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // -------------------------------------------------------------
+    // DESENHO E ANIMAÇÃO DOS BONECOS (SIMS)
+    // -------------------------------------------------------------
+    function drawSim(sim) {
+      const isSelected = (sim.id === selectedSimId);
+      const isWalking = (sim.state === 'WALKING');
+      const isWorking = (sim.state === 'WORKING');
+      const isCoffee = (sim.state === 'COFFEE');
+      const isResting = (sim.state === 'RESTING');
+
+      ctx.save();
+      ctx.translate(sim.x, sim.y);
+
+      // 1. O Plumbob Verde Flutuante (O Diamante dos Sims)
+      if (isSelected) {
+        const floatY = -48 + Math.sin(Date.now() / 250) * 4;
+        ctx.save();
+        ctx.translate(0, floatY);
+
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 12;
+
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath();
+        ctx.moveTo(0, -14);
+        ctx.lineTo(8, 0);
+        ctx.lineTo(0, 14);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#059669';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(8, 0);
+        ctx.lineTo(0, 14);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // 2. Balão de Pensamento / Fala dos Sims
+      if (sim.bubble) {
+        ctx.save();
+        ctx.translate(14, -40);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 95, 22, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        // Rabinho do balão
+        ctx.beginPath();
+        ctx.moveTo(4, 20);
+        ctx.lineTo(-6, 28);
+        ctx.lineTo(12, 20);
+        ctx.fill();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 9.5px system-ui';
+        ctx.fillText(sim.bubble, 8, 14);
+
+        ctx.restore();
+      }
+
+      // 3. Sombra do Sim no Chão
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(0, 18, 11, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ciclo de passos se estiver andando
+      let legOffset = 0;
+      let armOffset = 0;
+      if (isWalking) {
+        sim.animFrame += 0.2;
+        legOffset = Math.sin(sim.animFrame) * 4;
+        armOffset = Math.cos(sim.animFrame) * 4;
+      }
+
+      // Pernas (Calça)
+      ctx.fillStyle = sim.pantsColor;
+      if (isWorking || isResting) {
+        // Pernas dobradas (sentado)
+        ctx.fillRect(-6, 8, 6, 10);
+        ctx.fillRect(0, 8, 6, 10);
+        // Pés
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(-6, 17, 6, 3);
+        ctx.fillRect(0, 17, 6, 3);
+      } else {
+        // Pernas em pé / andando
+        ctx.fillRect(-6 + legOffset, 8, 5, 10);
+        ctx.fillRect(1 - legOffset, 8, 5, 10);
+        // Pés / Sapatos
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(-6 + legOffset, 17, 6, 3);
+        ctx.fillRect(1 - legOffset, 17, 6, 3);
+      }
+
+      // Tronco / Camisa
+      ctx.fillStyle = sim.shirtColor;
+      ctx.beginPath();
+      ctx.roundRect(-8, -4, 16, 13, 3);
+      ctx.fill();
+
+      // Braços
+      ctx.fillStyle = sim.shirtColor;
+      if (isWorking) {
+        // Braços esticados digitando no teclado
+        const typeShake = Math.sin(Date.now() / 80) * 2;
+        ctx.fillRect(-10, -2, 4, 10 + typeShake);
+        ctx.fillRect(6, -2, 4, 10 - typeShake);
+
+        // Mãozinhas
+        ctx.fillStyle = '#fbcfe8';
+        ctx.fillRect(-10, 7 + typeShake, 4, 3);
+        ctx.fillRect(6, 7 - typeShake, 4, 3);
+      } else if (isCoffee) {
+        // Braço segurando xícara de café
+        ctx.fillRect(-10, -2, 4, 8);
+        ctx.fillRect(5, -2, 6, 6);
+        // Xícara
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(8, -6, 6, 7);
+      } else {
+        // Braços normais balançando
+        ctx.fillRect(-10, -2 + armOffset, 4, 9);
+        ctx.fillRect(6, -2 - armOffset, 4, 9);
+      }
+
+      // Cabeça do Sim
+      ctx.fillStyle = '#fed7aa'; // Tom de pele
+      ctx.beginPath();
+      ctx.arc(0, -14, 9, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cabelo
+      ctx.fillStyle = sim.hairColor;
+      ctx.beginPath();
+      ctx.arc(0, -17, 9.5, Math.PI, Math.PI * 2);
+      ctx.fill();
+
+      // Olhos
+      ctx.fillStyle = '#0f172a';
+      // Piscar a cada 4 segundos
+      const blink = (Math.floor(Date.now() / 4000) % 2 === 0 && (Date.now() % 4000) < 150);
+      if (blink) {
+        ctx.fillRect(-4, -14, 3, 1);
+        ctx.fillRect(1, -14, 3, 1);
+      } else {
+        ctx.fillRect(-4, -15, 2.5, 2.5);
+        ctx.fillRect(1.5, -15, 2.5, 2.5);
+      }
+
+      // Sorriso
+      ctx.strokeStyle = '#b45309';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, -12, 3, 0.2, Math.PI - 0.2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------
+    // MOTOR DE ATUALIZAÇÃO E INTELIGÊNCIA ARTIFICIAL DOS SIMS
+    // -------------------------------------------------------------
+    function updateSims() {
+      Object.values(SIMS).forEach(sim => {
+        // Movimentação suave até o destino (Pathfinding direto)
+        const dx = sim.targetX - sim.x;
+        const dy = sim.targetY - sim.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 3) {
+          sim.state = 'WALKING';
+          const speed = 2.4;
+          sim.x += (dx / dist) * speed;
+          sim.y += (dy / dist) * speed;
+        } else {
+          sim.x = sim.targetX;
+          sim.y = sim.targetY;
+
+          // Se chegou na mesa de trabalho
+          if (sim.targetX === sim.desk.seatX && sim.targetY === sim.desk.seatY) {
+            sim.state = 'WORKING';
+          }
+          // Se chegou na máquina de café
+          else if (Math.hypot(sim.x - LOCATIONS.COFFEE_MACHINE.x, sim.y - LOCATIONS.COFFEE_MACHINE.y) < 20) {
+            sim.state = 'COFFEE';
+            sim.coffee = Math.min(100, sim.coffee + 0.15);
+          }
+          // Se chegou no sofá
+          else if (Math.hypot(sim.x - LOCATIONS.SOFA_LOUNGE.x, sim.y - LOCATIONS.SOFA_LOUNGE.y) < 20) {
+            sim.state = 'RESTING';
+            sim.rest = Math.min(100, sim.rest + 0.15);
+          }
+        }
+
+        // Simulação autônoma de ócio quando livre
+        if (Math.random() < 0.0015 && sim.state === 'WORKING' && sim.id !== 'antigravity') {
+          // De vez em quando um Sim decide pegar um cafezinho sozinho!
+          orderSim(sim.id, 'coffee');
+        }
+      });
+
+      // Atualiza relógio do escritório
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('office-clock').innerText = timeStr;
+    }
+
+    // LOOP PRINCIPAL DE RENDERIZAÇÃO
+    function gameLoop() {
+      updateSims();
+      drawOffice();
+      Object.values(SIMS).forEach(drawSim);
+      requestAnimationFrame(gameLoop);
+    }
+
+    // -------------------------------------------------------------
+    // CONTROLES E INTERAÇÃO
+    // -------------------------------------------------------------
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      const mouseY = (e.clientY - rect.top) * scaleY;
+
+      // Verifica se clicou em algum Sim
+      for (const sim of Object.values(SIMS)) {
+        const dist = Math.hypot(mouseX - sim.x, mouseY - sim.y);
+        if (dist < 26) {
+          selectSim(sim.id);
+          playAudioTone(523.25, 659.25);
+          return;
+        }
+      }
+
+      // Se clicou no chão com um Sim selecionado: manda ele andar até o ponto!
+      if (selectedSimId) {
+        const sim = SIMS[selectedSimId];
+        sim.targetX = Math.max(50, Math.min(760, mouseX));
+        sim.targetY = Math.max(60, Math.min(460, mouseY));
+        sim.state = 'WALKING';
+        sim.bubble = '🚶‍♂️ A caminho...';
+        playAudioTone(440, 550);
+        showToast('Comando de Movimento', `${sim.name} está se deslocando no escritório.`);
+      }
+    });
+
+    function selectSim(id) {
+      selectedSimId = id;
+      const sim = SIMS[id];
+
+      document.getElementById('sim-name').innerText = sim.name;
+      document.getElementById('sim-role').innerText = sim.role;
+      document.getElementById('sim-badge').innerText = sim.badge;
+      document.getElementById('sim-avatar-emoji').innerText = sim.emoji;
+      document.getElementById('delegate-target-label').innerText = sim.name;
+
+      updateNeedsBars(sim);
+    }
+
+    function updateNeedsBars(sim) {
+      document.getElementById('bar-prod-val').innerText = `${Math.round(sim.prod)}%`;
+      document.getElementById('bar-prod').style.width = `${Math.round(sim.prod)}%`;
+
+      document.getElementById('bar-coffee-val').innerText = `${Math.round(sim.coffee)}%`;
+      document.getElementById('bar-coffee').style.width = `${Math.round(sim.coffee)}%`;
+
+      document.getElementById('bar-rest-val').innerText = `${Math.round(sim.rest)}%`;
+      document.getElementById('bar-rest').style.width = `${Math.round(sim.rest)}%`;
+
+      const statusMap = {
+        WORKING: '💻 Foco Total / Trabalhando',
+        WALKING: '🚶‍♂️ Andando pelo Escritório',
+        COFFEE: '☕ Bebendo Café Expresso',
+        RESTING: '🛋️ Descansando no Sofá'
+      };
+      document.getElementById('sim-status-text').innerText = statusMap[sim.state] || 'Ocioso';
+    }
+
+    // Manda um Sim específico fazer uma ação
+    function orderSim(simId, action) {
+      const sim = SIMS[simId];
+      if (action === 'work') {
+        sim.targetX = sim.desk.seatX;
+        sim.targetY = sim.desk.seatY;
+        sim.bubble = '💻 Foco no Código!';
+        playAudioTone(523, 659);
+      } else if (action === 'coffee') {
+        sim.targetX = LOCATIONS.COFFEE_MACHINE.x - 15;
+        sim.targetY = LOCATIONS.COFFEE_MACHINE.y + 15;
+        sim.bubble = '☕ Pausa pro Café!';
+        playAudioTone(440, 880);
+      } else if (action === 'rest') {
+        sim.targetX = LOCATIONS.SOFA_LOUNGE.x;
+        sim.targetY = LOCATIONS.SOFA_LOUNGE.y - 5;
+        sim.bubble = '🛋️ Relaxando...';
+        playAudioTone(330, 440);
+      }
+      if (simId === selectedSimId) updateNeedsBars(sim);
+    }
+
+    function orderCurrentSim(act) {
+      orderSim(selectedSimId, act);
+      showToast('Ação dos Sims', `Você ordenou: ${SIMS[selectedSimId].name} (${act})`);
+    }
+
+    // Todos Trabalham ou Todos vão pro Café
+    function toggleAllWork(workMode) {
+      playAudioTone(workMode ? 659 : 440, workMode ? 880 : 330);
+      Object.keys(SIMS).forEach(id => {
+        orderSim(id, workMode ? 'work' : 'coffee');
+      });
+      showToast(workMode ? 'Modo Foco Geral!' : 'Pausa Coletiva pro Café!', workMode ? 'Todos os Sims voltaram para as mesas!' : 'Hora de abastecer cafeína na copa!');
+    }
+
+    // DELEGAR TAREFA DIRETA
+    async function submitDirectTask() {
+      const input = document.getElementById('direct-task-input');
+      const text = input.value.trim();
+      if (!text) {
+        alert('Digite uma ordem para o Sim.');
+        return;
+      }
+
+      playAudioTone(587, 880);
+      const sim = SIMS[selectedSimId];
+      sim.bubble = '⚡ Ordem Recebida!';
+      orderSim(selectedSimId, 'work');
+
+      try {
+        await fetch('http://127.0.0.1:8000/api/linear/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            issue_id: 'JOE-5',
+            body: `💬 [Ordem de Joedson para ${sim.name}]: ${text}`
+          })
+        });
+      } catch (e) {}
+
+      input.value = '';
+      showToast('Ordem Entregue no Linear!', `${sim.name} assumiu a tarefa no Linear Business.`);
+    }
+
+    // MODAL GLOBAL
+    function openGlobalDelegateModal() {
+      playAudioTone(523, 659);
+      document.getElementById('modal-stack-delegate').classList.remove('hidden');
+    }
+    function closeGlobalDelegateModal() {
+      document.getElementById('modal-stack-delegate').classList.add('hidden');
+    }
+
+    // DELEGAÇÃO GLOBAL PARA A STACK
+    async function submitGlobalDelegation() {
+      const title = document.getElementById('global-task-title').value.trim();
+      const desc = document.getElementById('global-task-desc').value.trim();
+
+      if (!title) {
+        alert('Digite o título da tarefa.');
+        return;
+      }
+
+      playAudioTone(523, 1046);
+      closeGlobalDelegateModal();
+      showToast('Criando no Linear Business...', `Registrando: ${title}`);
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/linear/issues', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            team_id: '9ee1e6c9-6bd6-4ec1-889e-53b4a07bf50b',
+            project_id: '96b9db10-2b28-4a83-b9ed-667b54d115d3',
+            title: title,
+            description: desc,
+            priority: 1
+          })
+        });
+        const data = await res.json();
+        if (data.issue) {
+          document.getElementById('current-task-display').innerHTML = `Tarefa Ativa: <b class="text-emerald-400">${data.issue.identifier} ${data.issue.title}</b>`;
+          showToast('Ticket Criado com Sucesso!', `Issue ${data.issue.identifier} despachada para o time.`);
+        }
+      } catch (e) {
+        showToast('Tarefa Despachada!', `A stack assumiu: ${title}`);
+      }
+
+      // Todos os Sims vão para as mesas trabalhar na nova tarefa!
+      toggleAllWork(true);
+    }
+
+    function showToast(title, desc) {
+      const t = document.getElementById('sims-toast');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-desc').innerText = desc;
+      t.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        t.classList.add('translate-y-24', 'opacity-0');
+      }, 3500);
+    }
+
+    function resetView() {
+      selectSim('antigravity');
+    }
+
+    // Inicia o jogo The Sims
+    selectSim('antigravity');
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+/* Estilos Complementares & Interatividade DarkLAB AI Studio */
+
+/* TOKEN BADGE NA HEADER */
+.ds-token-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ds-token-badge:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+}
+
+.ds-token-badge #nav-tokens-val {
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+.ds-token-badge small {
+  color: #9ca3af;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* MODAL DE FERRAMENTAS DARKLAB */
+.dl-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 6, 13, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.dl-modal-overlay.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dl-modal-dialog {
+  background: #0f0d1a;
+  border: 1px solid #28243d;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 1050px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(139, 92, 246, 0.15);
+  overflow: hidden;
+  transform: scale(0.96);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dl-modal-overlay.is-active .dl-modal-dialog {
+  transform: scale(1);
+}
+
+.dl-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid #231f38;
+  background: #121021;
+}
+
+.dl-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.dl-modal-title svg {
+  color: #a78bfa;
+}
+
+.dl-modal-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dl-modal-close:hover {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dl-modal-body {
+  padding: 1.75rem;
+  overflow-y: auto;
+  flex: 1;
+  color: #e5e7eb;
+}
+
+/* TABS E FORMULÁRIOS DAS FERRAMENTAS */
+.dl-tool-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.dl-field {
+  margin-bottom: 1.25rem;
+}
+
+.dl-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.dl-input, .dl-select, .dl-textarea {
+  width: 100%;
+  background: #181528;
+  border: 1px solid #2d2847;
+  color: #f3f4f6;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dl-input:focus, .dl-select:focus, .dl-textarea:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dl-btn:hover {
+  background: linear-gradient(135deg, #9333ea, #7c3aed);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+}
+
+.dl-btn-secondary {
+  background: #231f38;
+  color: #e5e7eb;
+  border: 1px solid #363054;
+}
+
+.dl-btn-secondary:hover {
+  background: #2a2544;
+  color: #fff;
+}
+
+/* RESULTADOS E CARDS DE CONTEÚDO */
+.dl-result-card {
+  background: #151224;
+  border: 1px solid #2b2545;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.dl-pre {
+  background: #090812;
+  border: 1px solid #201c36;
+  border-radius: 8px;
+  padding: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #a78bfa;
+  white-space: pre-wrap;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+/* KANBAN COMPLETO NO MODAL */
+.dl-kanban-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  min-height: 380px;
+}
+
+.dl-kcol {
+  background: #141222;
+  border: 1px solid #231f3a;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dl-khead {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8b5cf6;
+  letter-spacing: 0.5px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #231f3a;
+}
+
+.dl-kcard {
+  background: #1a172c;
+  border: 1px solid #312b50;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.dl-kcard:hover {
+  transform: translateY(-2px);
+  border-color: #8b5cf6;
+}
+
+/* RENDER PROGRESS BAR */
+.dl-progress {
+  width: 100%;
+  height: 8px;
+  background: #201c36;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.dl-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  width: 0%;
+  transition: width 0.3s ease;
+}

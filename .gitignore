@@ -1,0 +1,27 @@
+# Segredos e Configurações
+.env
+*.env
+*.pem
+*.key
+
+# Binários pesados
+cloudflared.exe
+*.exe
+
+# Bancos de Dados locais
+*.db
+*.sqlite
+*.sqlite3
+
+# Python e Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.tmp
+venv/
+.venv/
+
+# Logs e arquivos transitórios
+*.log
+tunnel_url.txt
+cloud_state.json
