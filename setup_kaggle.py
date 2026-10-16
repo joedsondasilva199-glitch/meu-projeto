@@ -96,7 +96,7 @@ except Exception as e:
 
 print("\n" + "=" * 65)
 print("✅ AMBIENTE 100% CONFIGURADO, PRONTO E FUNCIONAL!")
-print("📁 Backup Google Drive: Ativado na pasta 'Stack_Agentes_32GB'")
+print("📁 Backup Google Drive: Ativado na pasta 'Kaggles'")
 print("🔥 Keep-Alive Ativo: O notebook permanecerá acordado e operando.")
 print("=" * 65)
 

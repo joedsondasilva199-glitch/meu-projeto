@@ -18,7 +18,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("DriveSync")
 
-DRIVE_FOLDER_NAME = "Stack_Agentes_32GB"
+DRIVE_FOLDER_NAME = "Kaggles"
 
 def is_colab() -> bool:
     return "google.colab" in sys.modules or os.path.exists("/content")
