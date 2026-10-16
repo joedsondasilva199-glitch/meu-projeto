@@ -139,7 +139,32 @@ def main():
     parser.add_argument("--visible", action="store_true", help="Abrir navegador visível na tela (não-headless)")
     parser.add_argument("--quick-open", help="Abre uma URL, tira screenshot e extrai o título")
 
+    parser.add_argument("--interactive", action="store_true", help="Abre o navegador visível para login interativo e salva a sessão")
+
     args = parser.parse_args()
+
+    if args.interactive:
+        url = args.url or "https://www.kaggle.com/account/login"
+        print(f"🚀 Abrindo navegador interativo em: {url}")
+        print("💡 Faça seu login na janela do navegador. Quando terminar, feche a janela ou aperte Enter aqui no terminal.")
+        with sync_playwright() as p:
+            context = p.chromium.launch_persistent_context(
+                user_data_dir=USER_DATA_DIR,
+                headless=False,
+                viewport=None,
+                args=["--start-maximized", "--disable-blink-features=AutomationControlled"]
+            )
+            page = context.pages[0] if context.pages else context.new_page()
+            page.goto(url)
+            try:
+                # Mantém aberto até o usuário fechar ou dar timeout de 120s
+                page.wait_for_event("close", timeout=120000)
+            except Exception:
+                pass
+            context.close()
+            print("✅ Sessão e cookies salvos com sucesso no perfil persistente!")
+        return
+
     agent = BrowserAgent(headless=not args.visible)
 
     if args.quick_open:
