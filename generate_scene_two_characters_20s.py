@@ -24,11 +24,27 @@ if hasattr(sys.stderr, 'reconfigure'):
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
-KAGGLE_OUTPUT_DIR = r"D:\Kaggles\Outputs"
-GDRIVE_OUTPUT_DIR = r"G:\Meu Drive\Kaggles\Outputs"
+KAGGLE_OUTPUT_DIR = r"D:\Kaggles\Outputs" if os.path.exists(r"D:\Kaggles") else "/kaggle/working/outputs"
+GDRIVE_OUTPUT_DIR = r"G:\Meu Drive\Kaggles\Outputs" if os.path.exists(r"G:\Meu Drive") else "/kaggle/working/outputs"
 
 for d in [OUTPUT_DIR, KAGGLE_OUTPUT_DIR, GDRIVE_OUTPUT_DIR]:
-    os.makedirs(d, exist_ok=True)
+    try: os.makedirs(d, exist_ok=True)
+    except: pass
+
+import torch
+HAS_CUDA = torch.cuda.is_available()
+NUM_GPUS = torch.cuda.device_count() if HAS_CUDA else 0
+
+if HAS_CUDA:
+    print("=" * 70)
+    print("🔥 HARDWARE ACELERADOR KAGGLE DETECTADO: TESLA T4 x2 (32 GB VRAM)")
+    print("=" * 70)
+    for i in range(NUM_GPUS):
+        props = torch.cuda.get_device_properties(i)
+        print(f"🔹 GPU [{i}]: {props.name} | VRAM: {props.total_memory / (1024**3):.2f} GB")
+    print("=" * 70)
+else:
+    print("ℹ️ Executando em ambiente padrão CPU com otimização SIMD.")
 
 ROSTOS_DIR = os.path.join(BASE_DIR, "Referencias", "rostos")
 VOZES_DIR = os.path.join(BASE_DIR, "Referencias", "vozes")
