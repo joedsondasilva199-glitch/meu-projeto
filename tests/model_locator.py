@@ -41,6 +41,21 @@ MODEL_CONFIGS = {
         "repo_id": "Wan-AI/Wan2.1-T2V-1.3B",
         "folder_name": "wan21",
         "description": "Wan 2.1 (1.3B) - Geração de Vídeo Realista Estilo Seedance/Kling"
+    },
+    "wav2vec2": {
+        "repo_id": "facebook/wav2vec2-base-960h",
+        "folder_name": "wav2vec2",
+        "description": "Wav2Vec2 - Codificador de Áudio Neural para Vídeo Audio-Driven"
+    },
+    "realesrgan": {
+        "repo_id": "ai-forever/Real-ESRGAN",
+        "folder_name": "realesrgan",
+        "description": "Real-ESRGAN - Super-Resolução e Upscale Neural 480p para 1080p"
+    },
+    "lipsync": {
+        "repo_id": "camenduru/Wav2Lip",
+        "folder_name": "lipsync",
+        "description": "Wav2Lip-GAN - Sincronização Labial de Atores"
     }
 }
 

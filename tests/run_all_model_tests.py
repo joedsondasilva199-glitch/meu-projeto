@@ -32,6 +32,7 @@ import test_4_whisper
 import test_5_svd_video
 import test_6_wan21_video
 import test_7_lipsync
+import test_7_seedance_audio_video
 
 OUTPUT_DIR = os.path.abspath("outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -100,12 +101,21 @@ def main():
     except Exception as e:
         results["Wav2Lip-GAN (Lip-Sync)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
 
+    # TESTE 8 (7º ESPECIALISTA): SEEDANCE 2.5 (VÍDEO AUDIO-DRIVEN MULTI-PERSONAGENS)
+    try:
+        t0 = time.time()
+        file_seedance = test_7_seedance_audio_video.run_test()
+        results["Seedance 2.5 (Audio-Driven 1080p)"] = {"status": "APROVADO", "tempo": round(time.time() - t0, 1), "arquivo": file_seedance}
+    except Exception as e:
+        results["Seedance 2.5 (Audio-Driven 1080p)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
+
     # ETAPA FINAL: Compilação de Vídeo Integrando os Modelos
     final_video = os.path.join(OUTPUT_DIR, "video_final_integrado.mp4")
+    video_seedance = results.get("Seedance 2.5 (Audio-Driven 1080p)", {}).get("arquivo")
     video_lipsync = results.get("Wav2Lip-GAN (Lip-Sync)", {}).get("arquivo")
     video_wan = results.get("Wan 2.1 (Vídeo Seedance/Kling)", {}).get("arquivo")
     video_svd = results.get("SVD-XT (Vídeo Realista)", {}).get("arquivo")
-    best_video = video_lipsync if (video_lipsync and os.path.exists(video_lipsync)) else (video_wan if (video_wan and os.path.exists(video_wan)) else video_svd)
+    best_video = video_seedance if (video_seedance and os.path.exists(video_seedance)) else (video_lipsync if (video_lipsync and os.path.exists(video_lipsync)) else (video_wan if (video_wan and os.path.exists(video_wan)) else video_svd))
     img_sdxl = results.get("SDXL Turbo (1024x1024)", {}).get("arquivo")
     audio_xtts = results.get("XTTS-v2 (Voz com Emoção)", {}).get("arquivo")
     srt_whisper = results.get("Whisper Large v3 (Legendas)", {}).get("arquivo")

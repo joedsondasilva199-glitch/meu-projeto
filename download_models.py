@@ -93,9 +93,30 @@ MODELS_CATALOG = [
     {
         "id": "wan21",
         "name": "Wan 2.1 (1.3B) - Text-to-Video Estilo Seedance/Kling",
-        "repo_id": "Wan-AI/Wan2.1-T2V-1.3B",
+        "repo_id": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
         "category": "👑 Vídeo Realista de Próxima Geração (Wan-AI)",
         "allow_patterns": ["*.json", "*.safetensors", "*.txt", "*.bin"]
+    },
+    {
+        "id": "wav2vec2",
+        "name": "Wav2Vec2 Base (Audio Encoder)",
+        "repo_id": "facebook/wav2vec2-base-960h",
+        "category": "🎙️ Codificador Neural de Áudio",
+        "allow_patterns": ["*.json", "*.safetensors", "*.bin", "*.txt"]
+    },
+    {
+        "id": "realesrgan",
+        "name": "Real-ESRGAN (Super-Resolução 1080p)",
+        "repo_id": "ai-forever/Real-ESRGAN",
+        "category": "💎 Super-Resolução Neural",
+        "allow_patterns": ["*.pth", "*.bin", "*.json"]
+    },
+    {
+        "id": "lipsync",
+        "name": "Wav2Lip-GAN (Lip-Sync Neural)",
+        "repo_id": "camenduru/Wav2Lip",
+        "category": "👄 Sincronizador Labial",
+        "allow_patterns": ["*.pth", "*.json", "*.txt"]
     }
 ]
 
