@@ -93,7 +93,27 @@ DIALOGO = [
 ]
 
 def synthesize_turn_audio(item, out_wav):
-    """Gera áudio expressivo e natural para cada fala dos personagens."""
+    """Gera áudio para cada fala dos personagens, priorizando XTTS-v2 na GPU."""
+    ref_audio = os.path.join(VOZES_DIR, "audio_2_p2.wav" if item["personagem"] == "Helena" else "audio_3_p3.wav")
+    
+    # 1. Tentativa com XTTS-v2 Neural Voice Cloning se disponível
+    if HAS_CUDA and os.path.exists(ref_audio):
+        try:
+            from TTS.api import TTS
+            print(f"   🎙️ Clonando voz neural com XTTS-v2 em cuda:0 ({item['personagem']})...")
+            tts = TTS("tts_models/multilingual/multi-dataset/xtts_v2").to("cuda:0")
+            tts.tts_to_file(
+                text=item["texto"],
+                speaker_wav=ref_audio,
+                language="pt",
+                file_path=out_wav
+            )
+            print(f"   ✅ Voz neural gerada via XTTS-v2 para {item['personagem']}")
+            return
+        except Exception as e:
+            print(f"   ℹ️ XTTS direto: {e}. Prosseguindo com síntese prosódica.")
+
+    # 2. Síntese prosódica de alta resolução (24kHz)
     rate = 24000
     duration = item["duracao"]
     total_samples = int(rate * duration)
@@ -223,7 +243,11 @@ def generate_video_scene():
     ]
     subprocess.run(cmd_concat, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # 3. Espelha o vídeo gerado para D:\Kaggles\Outputs e Google Drive
+    # 3. Espelha o vídeo gerado para D:\Kaggles\Outputs, Google Drive e /kaggle/working
+    if os.path.exists("/kaggle/working"):
+        try: shutil.copy2(final_local, "/kaggle/working/video_dois_personagens_22s.mp4")
+        except: pass
+
     for dest_folder in [KAGGLE_OUTPUT_DIR, GDRIVE_OUTPUT_DIR]:
         dest_path = os.path.join(dest_folder, "video_dois_personagens_22s.mp4")
         try:
