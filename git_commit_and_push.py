@@ -42,7 +42,9 @@ files_to_track = [
     "Scripts/kaggle_32gb_hot_server.py",
     "Scripts/send_job_to_kaggle_32gb.py",
     "Scripts/dual_t4_parallel_engine.py",
-    "Scripts/create_kaggle_model_dataset.py"
+    "Scripts/create_kaggle_model_dataset.py",
+    "Scripts/test_xtts_story_20s.py",
+    "assets/speaker_reference_dramatico.wav"
 ]
 
 existing_files = [f.replace("\\", "/") for f in files_to_track if os.path.exists(os.path.join(repo_path, f))]
