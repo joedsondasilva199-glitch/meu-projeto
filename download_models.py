@@ -89,6 +89,13 @@ MODELS_CATALOG = [
         "repo_id": "stabilityai/stable-video-diffusion-img2vid-xt-1-1",
         "category": "🎥 Gerador de Vídeo Realista (25 Quadros)",
         "allow_patterns": ["*.json", "*.safetensors", "*.txt", "*fp16*"]
+    },
+    {
+        "id": "wan21",
+        "name": "Wan 2.1 (1.3B) - Text-to-Video Estilo Seedance/Kling",
+        "repo_id": "Wan-AI/Wan2.1-T2V-1.3B",
+        "category": "👑 Vídeo Realista de Próxima Geração (Wan-AI)",
+        "allow_patterns": ["*.json", "*.safetensors", "*.txt", "*.bin"]
     }
 ]
 

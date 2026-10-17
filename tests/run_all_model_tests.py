@@ -30,6 +30,7 @@ import test_2_xtts_emocao
 import test_3_sdxl_turbo
 import test_4_whisper
 import test_5_svd_video
+import test_6_wan21_video
 
 OUTPUT_DIR = os.path.abspath("outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -82,20 +83,30 @@ def main():
     except Exception as e:
         results["SVD-XT (Vídeo Realista)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
 
+    # TESTE 6: WAN 2.1 (Vídeo Realista de Próxima Geração - Estilo Seedance/Kling)
+    try:
+        t0 = time.time()
+        file_t6 = test_6_wan21_video.run_test()
+        results["Wan 2.1 (Vídeo Seedance/Kling)"] = {"status": "APROVADO", "tempo": round(time.time() - t0, 1), "arquivo": file_t6}
+    except Exception as e:
+        results["Wan 2.1 (Vídeo Seedance/Kling)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
+
     # ETAPA FINAL: Compilação de Vídeo Integrando os Modelos
     final_video = os.path.join(OUTPUT_DIR, "video_final_integrado.mp4")
+    video_wan = results.get("Wan 2.1 (Vídeo Seedance/Kling)", {}).get("arquivo")
     video_svd = results.get("SVD-XT (Vídeo Realista)", {}).get("arquivo")
+    best_video = video_wan if (video_wan and os.path.exists(video_wan)) else video_svd
     img_sdxl = results.get("SDXL Turbo (1024x1024)", {}).get("arquivo")
     audio_xtts = results.get("XTTS-v2 (Voz com Emoção)", {}).get("arquivo")
     srt_whisper = results.get("Whisper Large v3 (Legendas)", {}).get("arquivo")
 
     if audio_xtts and os.path.exists(audio_xtts):
         print("\n🎬 COMPILANDO VÍDEO INTEGRADO COM AS SAÍDAS DOS MODELOS REAIS...")
-        if video_svd and os.path.exists(video_svd):
-            print(f" -> Usando VÍDEO NEURAL REAL gerado pelo SVD-XT: {video_svd}")
+        if best_video and os.path.exists(best_video):
+            print(f" -> Usando VÍDEO NEURAL REAL: {best_video}")
             cmd_video = [
                 "ffmpeg", "-y",
-                "-stream_loop", "-1", "-i", video_svd,
+                "-stream_loop", "-1", "-i", best_video,
                 "-i", audio_xtts,
                 "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
                 "-shortest", "-pix_fmt", "yuv420p",

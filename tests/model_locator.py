@@ -36,6 +36,11 @@ MODEL_CONFIGS = {
         "repo_id": "stabilityai/stable-video-diffusion-img2vid-xt-1-1",
         "folder_name": "svd",
         "description": "Stable Video Diffusion XT - Geração de Vídeo Realista 25 Quadros"
+    },
+    "wan21": {
+        "repo_id": "Wan-AI/Wan2.1-T2V-1.3B",
+        "folder_name": "wan21",
+        "description": "Wan 2.1 (1.3B) - Geração de Vídeo Realista Estilo Seedance/Kling"
     }
 }
 
