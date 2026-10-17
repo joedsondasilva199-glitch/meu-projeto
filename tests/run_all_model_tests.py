@@ -31,6 +31,7 @@ import test_3_sdxl_turbo
 import test_4_whisper
 import test_5_svd_video
 import test_6_wan21_video
+import test_7_lipsync
 
 OUTPUT_DIR = os.path.abspath("outputs")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -91,11 +92,20 @@ def main():
     except Exception as e:
         results["Wan 2.1 (Vídeo Seedance/Kling)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
 
+    # TESTE 7: LIP-SYNC NEURAL (WAV2LIP-GAN)
+    try:
+        t0 = time.time()
+        file_t7 = test_7_lipsync.run_test()
+        results["Wav2Lip-GAN (Lip-Sync)"] = {"status": "APROVADO", "tempo": round(time.time() - t0, 1), "arquivo": file_t7}
+    except Exception as e:
+        results["Wav2Lip-GAN (Lip-Sync)"] = {"status": f"FALHOU: {e}", "tempo": 0, "arquivo": None}
+
     # ETAPA FINAL: Compilação de Vídeo Integrando os Modelos
     final_video = os.path.join(OUTPUT_DIR, "video_final_integrado.mp4")
+    video_lipsync = results.get("Wav2Lip-GAN (Lip-Sync)", {}).get("arquivo")
     video_wan = results.get("Wan 2.1 (Vídeo Seedance/Kling)", {}).get("arquivo")
     video_svd = results.get("SVD-XT (Vídeo Realista)", {}).get("arquivo")
-    best_video = video_wan if (video_wan and os.path.exists(video_wan)) else video_svd
+    best_video = video_lipsync if (video_lipsync and os.path.exists(video_lipsync)) else (video_wan if (video_wan and os.path.exists(video_wan)) else video_svd)
     img_sdxl = results.get("SDXL Turbo (1024x1024)", {}).get("arquivo")
     audio_xtts = results.get("XTTS-v2 (Voz com Emoção)", {}).get("arquivo")
     srt_whisper = results.get("Whisper Large v3 (Legendas)", {}).get("arquivo")
