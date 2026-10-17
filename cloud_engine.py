@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-ULTRA-DETERMINISTIC CLOUD WORKFLOW ENGINE (DARKLAB / CLOUD PIPELINE)
+ULTRA-DETERMINISTIC CLOUD WORKFLOW ENGINE (STUDIO / CLOUD PIPELINE)
 Target: Kaggle GPU Dual T4 (2x16GB) & Google Colab
 Execution Mode: Strict Sandbox / Zero Local Dependencies
 ================================================================================

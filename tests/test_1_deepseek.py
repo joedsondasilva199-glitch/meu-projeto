@@ -52,7 +52,7 @@ def run_test():
     VRAMManager.audit("DeepSeek-R1 em VRAM")
 
     prompt = (
-        "Você é o diretor e roteirista sênior do DarkLab. "
+        "Você é o diretor e roteirista sênior do Estúdio de IA. "
         "Crie um roteiro cinematográfico sci-fi de exatamente 20 segundos em Português do Brasil com 4 cenas (5s cada). "
         "Estruture a resposta obrigatoriamente no seguinte JSON:\n"
         "{\n"

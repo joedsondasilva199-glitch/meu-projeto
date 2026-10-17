@@ -187,7 +187,7 @@ class StudioPipeline:
             from PIL import Image, ImageDraw
             img = Image.new("RGB", (1280, 720), color=(20, 30, 45 + sc_id * 30))
             d = ImageDraw.Draw(img)
-            d.text((40, 40), f"DARKLAB STUDIO 32GB - CENA {sc_id}", fill=(255, 255, 255))
+            d.text((40, 40), f"AI STUDIO 32GB - CENA {sc_id}", fill=(255, 255, 255))
             d.text((40, 80), f"Prompt: {sc_prompt[:80]}...", fill=(180, 200, 220))
             img.save(img_file)
             
